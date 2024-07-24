@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a quick and dry implementaion of reddit-bot in Go programming language.
+This is a quick and dry implementation of reddit-bot in Go programming language.
 
 ## Requirement
 
