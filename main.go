@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"golang.org/x/exp/rand"
 )
 
 // Load environment variables from .env file if present
@@ -28,6 +30,37 @@ func hasReplied(postID string, repliedPosts map[string]bool) bool {
 // Mark a post as replied to
 func markReplied(postID string, repliedPosts map[string]bool) {
 	repliedPosts[postID] = true
+}
+
+// Upvote a post
+func upvotePost(client *reddit.Client, ctx context.Context, postID string) error {
+	_, err := client.Post.Upvote(ctx, postID)
+	return err
+}
+
+func upvoteComment(client *reddit.Client, ctx context.Context, commentID string) error {
+	_, err := client.Comment.Upvote(ctx, commentID)
+	return err
+}
+
+func filterComments(comments []*reddit.Comment, keyword string, usernames []string) []*reddit.Comment {
+	var filteredComments []*reddit.Comment
+	for _, comment := range comments {
+		if strings.Contains(comment.Body, keyword) && contains(usernames, comment.Author) {
+			filteredComments = append(filteredComments, comment)
+			fmt.Println(comment)
+		}
+	}
+	return filteredComments
+}
+
+func contains(slice []string, item string) bool {
+	for _, a := range slice {
+		if a == item {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
@@ -52,6 +85,8 @@ func main() {
 
 	// Keep track of replied posts to avoid duplicates
 	repliedPosts := make(map[string]bool)
+	keyword := "Golang"
+	usernames := []string{"dani198", "specificUser2"}
 
 	for {
 		// Fetch new posts
@@ -62,7 +97,6 @@ func main() {
 			log.Printf("Error fetching posts: %v", err)
 			continue
 		}
-
 		for _, post := range posts {
 			if hasReplied(post.FullID, repliedPosts) {
 				continue
@@ -78,11 +112,27 @@ func main() {
 			markReplied(post.FullID, repliedPosts)
 			fmt.Printf("Replied to post: %s\n", post.Title)
 
-			// Sleep for a while before replying to the next post to respect rate limits
+
+			post, _, err := client.Post.Get(ctx, post.ID)
+			if err != nil {
+				log.Printf("Error fetching post %s: %v", post.Post.ID, err)
+				return
+			}
+
+			filteredComments := filterComments(post.Comments, keyword, usernames)
+			if len(filteredComments) > 0 {
+				randomComment := filteredComments[rand.Intn(len(filteredComments))]
+				err = upvoteComment(client, ctx, randomComment.FullID)
+				if err != nil {
+					log.Printf("Error upvoting comment %s: %v", randomComment.ID, err)
+				} else {
+					fmt.Printf("Upvoted comment by %s: %s\n", randomComment.Author, randomComment.Body)
+				}
+			}
+
 			time.Sleep(5 * time.Second)
 		}
-
-		// Sleep for a while before checking for new posts again
 		time.Sleep(1 * time.Minute)
+
 	}
 }
