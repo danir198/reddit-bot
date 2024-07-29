@@ -74,6 +74,12 @@ func main() {
 		Password: os.Getenv("REDDIT_PASSWORD"),
 	}
 
+	// Check REDDIT env vairables
+	fmt.Println("REDDIT_CLIENT_ID = ", credentials.ID)
+	fmt.Println("REDDIT_CLIENT_SECRET = ", credentials.Secret)
+	fmt.Println("REDDIT_USERNAME = ", credentials.Username)
+	fmt.Println("REDDIT_PASSWORD = ", credentials.Password)
+
 	// Create a new Reddit client
 	client, err := reddit.NewClient(credentials)
 	if err != nil {
@@ -81,7 +87,8 @@ func main() {
 	}
 
 	ctx := context.Background()
-	subreddit := "test_learning_bot_gol" // Replace with your subreddit of choice
+	//subreddit := `test_learning_bot_gol` // Replace with your subreddit of choice
+	subreddit := "my_subreddit_test" // Replace with your subreddit of choice
 
 	// Keep track of replied posts to avoid duplicates
 	repliedPosts := make(map[string]bool)
@@ -90,14 +97,20 @@ func main() {
 
 	for {
 		// Fetch new posts
+		fmt.Println("Fetching new post...")
 		posts, _, err := client.Subreddit.NewPosts(ctx, subreddit, &reddit.ListOptions{
 			Limit: 10,
 		})
+
 		if err != nil {
 			log.Printf("Error fetching posts: %v", err)
 			continue
 		}
+
 		for _, post := range posts {
+
+			fmt.Printf("%v - %v - %v\n", post.Author, post.Title, post.Body)
+
 			if hasReplied(post.FullID, repliedPosts) {
 				continue
 			}
@@ -111,7 +124,6 @@ func main() {
 
 			markReplied(post.FullID, repliedPosts)
 			fmt.Printf("Replied to post: %s\n", post.Title)
-
 
 			post, _, err := client.Post.Get(ctx, post.ID)
 			if err != nil {
