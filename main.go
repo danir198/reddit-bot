@@ -1,10 +1,15 @@
 package main
 
+//
+// Reddit reference:
+// - https://www.reddit.com/dev/api/
+// - https://www.reddit.com/prefs/apps
+//
+
 import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -64,21 +69,39 @@ func contains(slice []string, item string) bool {
 }
 
 func main() {
-	loadEnv()
 
-	// Replace with your Reddit app credentials from environment variables
+	// Read all credential from config.json
+	ReadCredentials()
+	//PrintCredentials()
+
+	// Select random credential
+	credential := GetRandCredential()
+	credential.Print()
+
+	/*
+		loadEnv()
+
+		// Replace with your Reddit app credentials from environment variables
+		credentials := reddit.Credentials{
+			ID:       os.Getenv("REDDIT_CLIENT_ID"),
+			Secret:   os.Getenv("REDDIT_CLIENT_SECRET"),
+			Username: os.Getenv("REDDIT_USERNAME"),
+			Password: os.Getenv("REDDIT_PASSWORD"),
+		}
+	*/
+
 	credentials := reddit.Credentials{
-		ID:       os.Getenv("REDDIT_CLIENT_ID"),
-		Secret:   os.Getenv("REDDIT_CLIENT_SECRET"),
-		Username: os.Getenv("REDDIT_USERNAME"),
-		Password: os.Getenv("REDDIT_PASSWORD"),
+		ID:       credential.REDDIT_CLIENT_ID,
+		Secret:   credential.REDDIT_CLIENT_SECRET,
+		Username: credential.REDDIT_USERNAME,
+		Password: credential.REDDIT_PASSWORD,
 	}
 
-	// Check REDDIT env vairables
-	fmt.Println("REDDIT_CLIENT_ID = ", credentials.ID)
-	fmt.Println("REDDIT_CLIENT_SECRET = ", credentials.Secret)
-	fmt.Println("REDDIT_USERNAME = ", credentials.Username)
-	fmt.Println("REDDIT_PASSWORD = ", credentials.Password)
+	// Check credentials
+	fmt.Println("ID = ", credentials.ID)
+	fmt.Println("Secret = ", credentials.Secret)
+	fmt.Println("Username = ", credentials.Username)
+	fmt.Println("Password = ", credentials.Password)
 
 	// Create a new Reddit client
 	client, err := reddit.NewClient(credentials)
@@ -87,8 +110,8 @@ func main() {
 	}
 
 	ctx := context.Background()
-	//subreddit := `test_learning_bot_gol` // Replace with your subreddit of choice
-	subreddit := "my_subreddit_test" // Replace with your subreddit of choice
+	subreddit := `test_learning_bot_gol` // Replace with your subreddit of choice
+	//subreddit := "my_subreddit_test" // Replace with your subreddit of choice
 
 	// Keep track of replied posts to avoid duplicates
 	repliedPosts := make(map[string]bool)
