@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"strings"
@@ -28,16 +29,21 @@ type Bot struct {
 
 	upvoteUserKeyword []string
 	upvoteBodyKeyword string
+	action            string
+	itemType          string
 }
 
 // NewBot creates a new Bot with a specific account.
-func NewBot(ID string, c Credential, upvoteUserKeyword []string, upvoteBodyKeyword string) *Bot {
+func NewBot(ID string, c Credential, upvoteUserKeyword []string, upvoteBodyKeyword string, action, subreddit, itemType string) *Bot {
 
 	b := Bot{
 		ID:                ID,
 		credential:        c,
 		upvoteUserKeyword: upvoteUserKeyword,
 		upvoteBodyKeyword: upvoteBodyKeyword,
+		action:            action,
+		subreddit:         subreddit,
+		itemType:          itemType,
 	}
 
 	var err error
@@ -77,7 +83,19 @@ func (b *Bot) upvotePost(postID string) error {
 
 // Upvote a comment
 func (b *Bot) upvoteComment(commentID string) error {
-	_, err := b.client.Comment.Upvote(b.ctx, commentID)
+	_, err := b.client.Comment.Downvote(b.ctx, commentID)
+	return err
+}
+
+// Upvote a post
+func (b *Bot) downvotePost(postID string) error {
+	_, err := b.client.Post.Upvote(b.ctx, postID)
+	return err
+}
+
+// Upvote a comment
+func (b *Bot) downvoteComment(commentID string) error {
+	_, err := b.client.Comment.Downvote(b.ctx, commentID)
 	return err
 }
 
@@ -108,7 +126,7 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	b.ctx = context.Background()
-	b.subreddit = `test_learning_bot_gol`
+	//b.subreddit = `test_learning_bot_gol`
 	//b.subreddit = "my_subreddit_test"
 
 	log.Printf("Running BOT#%v...", b.ID)
@@ -166,25 +184,55 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 			if len(filteredComments) > 0 {
 				randomComment := filteredComments[rand.Intn(len(filteredComments))]
 
-				if randomComment.Likes != nil && *(randomComment.Likes) {
-					log.Printf("BOT#%v - Already Upvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
-				} else {
-
-					err = b.upvoteComment(randomComment.FullID)
-					if err != nil {
-						log.Printf("BOT#%v - Error upvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body, err)
+				defer wg.Done()
+				if b.action == "upvote" {
+					if b.itemType == "comment" {
+						if randomComment.Likes != nil && *(randomComment.Likes) {
+							log.Printf("BOT#%v - Already Upvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+						} else {
+							err := b.upvoteComment(randomComment.FullID)
+							if err != nil {
+								log.Printf("Error upvoting comment %s: %v", randomComment.FullID, err)
+							} else {
+								fmt.Printf("upvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+							}
+						}
 					} else {
-						log.Printf("BOT#%v - Upvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+						fmt.Printf("Upvote post not yet implemented")
+					}
+				} else if b.action == "downvote" {
+					if b.itemType == "comment" {
+						if randomComment.Likes != nil && !(*(randomComment.Likes)) {
+							log.Printf("BOT#%v - Already Downvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+						} else {
+							err := b.downvotePost(randomComment.FullID)
+							if err != nil {
+								log.Printf("Error downvoting comment %s: %v", randomComment.FullID, err)
+							} else {
+								fmt.Printf("downvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+							}
+						}
+					} else {
+						fmt.Printf("Downvote Post is not yet implemented")
+
 					}
 				}
+
+				if err != nil {
+					log.Printf("BOT#%v - Error upvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body, err)
+					// } else {
+					// 	log.Printf("BOT#%v - Upvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+					// }
+				}
+				//}
+
+				log.Printf("BOT#%v - Sleeping 5 seconds...\n", b.ID)
+				time.Sleep(5 * time.Second)
 			}
 
-			log.Printf("BOT#%v - Sleeping 5 seconds...\n", b.ID)
-			time.Sleep(5 * time.Second)
+			log.Printf("BOT#%v - Sleeping 10 seconds...\n", b.ID)
+			time.Sleep(10 * time.Second)
+
 		}
-
-		log.Printf("BOT#%v - Sleeping 10 seconds...\n", b.ID)
-		time.Sleep(10 * time.Second)
-
 	}
 }
