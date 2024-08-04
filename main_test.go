@@ -69,3 +69,50 @@ func TestRedditBot(t *testing.T) {
 		time.Sleep(5 * time.Second)
 	}
 }
+
+func TestReadCredentials(t *testing.T) {
+
+	ReadCredentials()
+
+	assert.Equal(t, len(CredentialList), 2)
+
+	testCredentialList := []Credential{
+		{
+			REDDIT_CLIENT_ID:     "1a",
+			REDDIT_CLIENT_SECRET: "1b",
+			REDDIT_USERNAME:      "1c",
+			REDDIT_PASSWORD:      "1d",
+		},
+		{
+			REDDIT_CLIENT_ID:     "2a",
+			REDDIT_CLIENT_SECRET: "2b",
+			REDDIT_USERNAME:      "2c",
+			REDDIT_PASSWORD:      "2d",
+		},
+	}
+	assert.Equal(t, CredentialList, testCredentialList)
+}
+
+func TestGetRandCredential(t *testing.T) {
+
+	ReadCredentials()
+
+	testCredentialList := []Credential{
+		{
+			REDDIT_CLIENT_ID:     "1a",
+			REDDIT_CLIENT_SECRET: "1b",
+			REDDIT_USERNAME:      "1c",
+			REDDIT_PASSWORD:      "1d",
+		},
+		{
+			REDDIT_CLIENT_ID:     "2a",
+			REDDIT_CLIENT_SECRET: "2b",
+			REDDIT_USERNAME:      "2c",
+			REDDIT_PASSWORD:      "2d",
+		},
+	}
+
+	credential := GetRandCredential()
+
+	assert.True(t, credential == testCredentialList[0] || credential == testCredentialList[1])
+}

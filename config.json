@@ -1,0 +1,14 @@
+[
+    {
+        "REDDIT_CLIENT_ID": "1a",
+        "REDDIT_CLIENT_SECRET": "1b",
+        "REDDIT_USERNAME": "1c",
+        "REDDIT_PASSWORD": "1d"
+    },
+    {
+        "REDDIT_CLIENT_ID": "2a",
+        "REDDIT_CLIENT_SECRET": "2b",
+        "REDDIT_USERNAME": "2c",
+        "REDDIT_PASSWORD": "2d"
+    }
+]
