@@ -20,7 +20,7 @@ type Credential struct {
 const configFilename string = "config.json"
 
 // List of credentials
-var credentialList []Credential
+var CredentialList []Credential
 
 // Read credentials from JSON file
 func ReadCredentials() {
@@ -38,7 +38,7 @@ func ReadCredentials() {
 	// Read json file
 	//
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&credentialList); err != nil {
+	if err := decoder.Decode(&CredentialList); err != nil {
 		log.Printf("Error decoding JSON: %v", err)
 		return
 	}
@@ -47,7 +47,7 @@ func ReadCredentials() {
 // Print out credentials variables
 func PrintCredentials() {
 
-	for idx, credential := range credentialList {
+	for idx, credential := range CredentialList {
 		fmt.Printf("Item number #%v\n", idx)
 		credential.Print()
 	}
@@ -57,10 +57,10 @@ func PrintCredentials() {
 func GetRandCredential() Credential {
 
 	// Generate a random index in the range of the slice
-	randomIndex := rand.Intn(len(credentialList))
+	randomIndex := rand.Intn(len(CredentialList))
 
 	// Select the random item from the slice
-	return credentialList[randomIndex]
+	return CredentialList[randomIndex]
 }
 
 // Print credential
