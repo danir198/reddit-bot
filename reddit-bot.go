@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"reddit-bot/datastore"
+
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 
@@ -121,6 +123,8 @@ func contains(slice []string, item string) bool {
 	return false
 }
 
+var store datastore.VoteStore
+
 func (b Bot) Run(wg *sync.WaitGroup) {
 
 	defer wg.Done()
@@ -130,12 +134,20 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 	log.Printf("Running BOT#%v...", b.ID)
 	log.Printf("BOT#%v - credential: %v", b.ID, b.credential)
 
+	var err error
+	store, err = datastore.NewSQLiteStore("reddit_bot.db")
+	if err != nil {
+		log.Fatalf("Failed to create datastore: %v", err)
+	}
+	defer store.Close()
+	defer wg.Done()
+
 	for {
 
 		// Fetch new posts
 		log.Printf("BOT#%v - Fetching new posts\n", b.ID)
 		posts, _, err := b.client.Subreddit.NewPosts(b.ctx, b.subreddit, &reddit.ListOptions{
-			Limit: 10,
+			Limit: 50,
 		})
 
 		if err != nil {
@@ -149,11 +161,6 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 
 			log.Printf("BOT#%v - Processing post ID=%v, Author=%v, Title=%v\n", b.ID, post.FullID, post.Author, post.Title)
 
-
-			//
-			// Process upvote post
-			//
-
 			post, _, err := b.client.Post.Get(b.ctx, post.ID)
 			if err != nil {
 				log.Printf("BOT#%v - Error fetching comments for post ID=%v: %v", b.ID, post.Post.ID, err)
@@ -161,56 +168,54 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 			}
 
 			filteredComments := b.filteredComments(post.Comments)
-			if len(filteredComments) > 0 {
-				randomComment := filteredComments[rand.Intn(len(filteredComments))]
-
-				defer wg.Done()
-				if b.action == "upvote" {
-					if b.itemType == "comment" {
-						if randomComment.Likes != nil && *(randomComment.Likes) {
-							log.Printf("BOT#%v - Already Upvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
-						} else {
-							err := b.upvoteComment(randomComment.FullID)
-							if err != nil {
-								log.Printf("Error upvoting comment %s: %v", randomComment.FullID, err)
-							} else {
-								fmt.Printf("upvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
-							}
-						}
-					} else {
-						fmt.Printf("Upvote post not yet implemented")
-					}
-				} else if b.action == "downvote" {
-					if b.itemType == "comment" {
-						if randomComment.Likes != nil && !(*(randomComment.Likes)) {
-							log.Printf("BOT#%v - Already Downvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
-						} else {
-							err := b.downvotePost(randomComment.FullID)
-							if err != nil {
-								log.Printf("Error downvoting comment %s: %v", randomComment.FullID, err)
-							} else {
-								fmt.Printf("downvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
-							}
-						}
-					} else {
-						fmt.Printf("Downvote Post is not yet implemented")
-
-					}
-				}
-
-				if err != nil {
-					log.Printf("BOT#%v - Error upvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body, err)
-
-				}
-				
-
-				log.Printf("BOT#%v - Sleeping 5 seconds...\n", b.ID)
-				time.Sleep(5 * time.Second)
+			if len(filteredComments) == 0 {
+				log.Printf("BOT#%v - No filtered comments for post ID=%v", b.ID, post.Post.ID)
+				continue
 			}
 
-			log.Printf("BOT#%v - Sleeping 10 seconds...\n", b.ID)
-			time.Sleep(10 * time.Second)
+			randomComment := filteredComments[rand.Intn(len(filteredComments))]
+			log.Printf("BOT#%v - Selected random comment ID=%v", b.ID, randomComment.FullID)
 
+			hasVoted, prevAction, err := store.HasVoted(randomComment.FullID, b.ID)
+			if err != nil {
+				log.Printf("BOT#%v - Error checking vote status: %v", b.ID, err)
+				continue
+			}
+
+			if hasVoted {
+				log.Printf("BOT#%v - Already %s comment ID=%v, Author=%v, Body=%v\n", b.ID, prevAction, randomComment.ID, randomComment.Author, randomComment.Body)
+				continue
+			}
+
+			if b.action == "upvote" && b.itemType == "comment" {
+				err = b.upvoteComment(randomComment.FullID)
+				if err != nil {
+					log.Printf("Error upvoting comment %s: %v", randomComment.FullID, err)
+					continue
+				}
+			} else if b.action == "downvote" && b.itemType == "comment" {
+
+				err = b.downvotePost(randomComment.FullID)
+				if err != nil {
+					log.Printf("Error downvoting comment %s: %v", randomComment.FullID, err)
+					continue
+				}
+			}
+
+			err = store.RecordVote(randomComment.FullID, "comment", b.action, b.ID)
+			if err != nil {
+				log.Printf("BOT#%v - Error recording vote in datastore: %v", b.ID, err)
+			}
+
+			fmt.Printf("action=%v, comment ID=%v, Author=%v, Body=%v: %v\n", b.action, b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
+
+			log.Printf("BOT#%v - Sleeping 5 seconds...\n", b.ID)
+			time.Sleep(5 * time.Second)
 		}
+
+		log.Printf("BOT#%v - Sleeping 10 seconds...\n", b.ID)
+		time.Sleep(10 * time.Second)
+
 	}
+
 }
