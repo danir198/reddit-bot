@@ -126,8 +126,6 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	b.ctx = context.Background()
-	//b.subreddit = `test_learning_bot_gol`
-	//b.subreddit = "my_subreddit_test"
 
 	log.Printf("Running BOT#%v...", b.ID)
 	log.Printf("BOT#%v - credential: %v", b.ID, b.credential)
@@ -151,24 +149,6 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 
 			log.Printf("BOT#%v - Processing post ID=%v, Author=%v, Title=%v\n", b.ID, post.FullID, post.Author, post.Title)
 
-			/*
-				//
-				// Process reply post
-				//
-				if b.hasReplied(post.FullID) {
-					continue
-				}
-
-				replyMessage := "Hello! This is an automated reply."
-				_, _, err := b.client.Comment.Submit(b.ctx, post.FullID, replyMessage)
-				if err != nil {
-					log.Printf("BOT#%v - Error replying to post ID=%: %v\n", b.ID, post.ID, err)
-					continue
-				}
-
-				log.Printf("BOT#%v - Replied to post ID=%v, Author=%v, Title=%v\n", b.ID, post.ID, post.Title)
-				b.markReplied(post.FullID)
-			*/
 
 			//
 			// Process upvote post
@@ -220,11 +200,9 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 
 				if err != nil {
 					log.Printf("BOT#%v - Error upvoting comment ID=%v, Author=%v, Body=%v: %v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body, err)
-					// } else {
-					// 	log.Printf("BOT#%v - Upvoted comment ID=%v, Author=%v, Body=%v\n", b.ID, randomComment.ID, randomComment.Author, randomComment.Body)
-					// }
+
 				}
-				//}
+				
 
 				log.Printf("BOT#%v - Sleeping 5 seconds...\n", b.ID)
 				time.Sleep(5 * time.Second)

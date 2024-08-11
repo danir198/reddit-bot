@@ -28,7 +28,6 @@ func loadEnv() {
 func main() {
 	action := flag.String("action", "", "Action to perform: upvote or downvote (required)")
 	subreddit := flag.String("subreddit", "", "Subreddit name (required)")
-	itemID := flag.String("id", "", "ID of the post or comment to vote on (required)")
 	itemType := flag.String("type", "", "Type of item to vote on: post or comment (required)")
 
 	flag.Parse()
@@ -63,5 +62,5 @@ func main() {
 	}
 
 	wg.Wait()
-	fmt.Printf("Finished %sing %s %s in subreddit %s\n", *action, *itemType, *itemID, *subreddit)
+	fmt.Printf("Finished %sing %s  in subreddit %s\n", *action, *itemType, *subreddit)
 }
