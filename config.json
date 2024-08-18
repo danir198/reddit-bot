@@ -1,14 +1,32 @@
-[
-    {
-        "REDDIT_CLIENT_ID": "1a",
-        "REDDIT_CLIENT_SECRET": "1b",
-        "REDDIT_USERNAME": "1c",
-        "REDDIT_PASSWORD": "1d"
-    },
-    {
-        "REDDIT_CLIENT_ID": "2a",
-        "REDDIT_CLIENT_SECRET": "2b",
-        "REDDIT_USERNAME": "2c",
-        "REDDIT_PASSWORD": "2d"
-    }
-]
+{
+    "app_name": "reddit-bot",
+    "version": "0.1",
+    "bots": [
+        {
+            "ID": "1",
+            "subreddit": "test_learning_bot_gol",
+            "action": "upvote",
+            "actiontype": "post",
+            "credential": {
+                "REDDIT_CLIENT_ID": "dummy",
+                "REDDIT_CLIENT_SECRET": "dummy",
+                "REDDIT_USERNAME": "dummy",
+                "REDDIT_PASSWORD": "dummy"
+            }
+        },
+        {
+            "id": "2",
+            "subreddit": "test_learning_bot_gol",
+            "action": "upvote",
+            "actiontype": "comment",
+            "credential": {
+                "REDDIT_CLIENT_ID": "dummy",
+                "REDDIT_CLIENT_SECRET": "dummy",
+                "REDDIT_USERNAME": "dummy",
+                "REDDIT_PASSWORD": "dummy"
+            }
+        }        
+    ]
+}
+
+

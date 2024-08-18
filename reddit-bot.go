@@ -24,7 +24,7 @@ import (
 type Bot struct {
 	ID           string
 	ctx          context.Context
-	credential   Credential
+	credential   botCredentialType
 	client       *reddit.Client
 	subreddit    string
 	repliedPosts map[string]bool
@@ -36,7 +36,7 @@ type Bot struct {
 }
 
 // NewBot creates a new Bot with a specific account.
-func NewBot(ID string, c Credential, upvoteUserKeyword []string, upvoteBodyKeyword string, action, subreddit, itemType string) *Bot {
+func NewBot(ID string, c botCredentialType, upvoteUserKeyword []string, upvoteBodyKeyword string, action, subreddit, itemType string) *Bot {
 
 	b := Bot{
 		ID:                ID,
