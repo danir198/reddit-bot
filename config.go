@@ -16,11 +16,13 @@ type botCredentialType struct {
 
 // TODO: add upvoteUserKeyword and upvoteBodyKeyword in botConfigType
 type botConfigType struct {
-	ID         string            `json:"ID"`
-	Subreddit  string            `json:"subreddit"`
-	Action     string            `json:"action"`     // upvote or downvote
-	Actiontype string            `json:"actiontype"` // post or comment
-	Credential botCredentialType `json:"credential"`
+	ID                string            `json:"ID"`
+	Subreddit         string            `json:"subreddit"`
+	Action            string            `json:"action"`     // upvote or downvote
+	Actiontype        string            `json:"actiontype"` // post or comment
+	UpvoteUserKeyword []string          `json:"upvoteUserKeyword"`
+	UpvoteBodyKeyword string            `json:"upvoteBodyKeyword"`
+	Credential        botCredentialType `json:"credential"`
 }
 
 type redditBotConfigType struct {

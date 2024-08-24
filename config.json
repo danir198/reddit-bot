@@ -5,28 +5,19 @@
         {
             "ID": "1",
             "subreddit": "test_learning_bot_gol",
-            "action": "upvote",
-            "actiontype": "post",
-            "credential": {
-                "REDDIT_CLIENT_ID": "dummy",
-                "REDDIT_CLIENT_SECRET": "dummy",
-                "REDDIT_USERNAME": "dummy",
-                "REDDIT_PASSWORD": "dummy"
-            }
-        },
-        {
-            "id": "2",
-            "subreddit": "test_learning_bot_gol",
-            "action": "upvote",
+            "action": "downvote",
             "actiontype": "comment",
+            "upvoteUserKeyword": [
+                "aryamahzar_new",
+                "dani198"
+            ],
+            "upvoteBodyKeyword": "golang",
             "credential": {
                 "REDDIT_CLIENT_ID": "dummy",
                 "REDDIT_CLIENT_SECRET": "dummy",
                 "REDDIT_USERNAME": "dummy",
                 "REDDIT_PASSWORD": "dummy"
             }
-        }        
+        }
     ]
 }
-
-

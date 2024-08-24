@@ -63,7 +63,7 @@ func main() {
 
 			wg.Add(1)
 
-			b := NewBot(bot.ID, bot.Credential, []string{"aryamahzar_new", "dani198"}, "Golang", bot.Action, bot.Subreddit, bot.Actiontype)
+			b := NewBot(bot.ID, bot.Credential, bot.UpvoteUserKeyword, bot.UpvoteBodyKeyword, bot.Action, bot.Subreddit, bot.Actiontype)
 			go b.Run(&wg)
 		}
 
