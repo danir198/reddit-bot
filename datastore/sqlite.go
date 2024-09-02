@@ -64,13 +64,13 @@ func (s *SQLiteStore) RecordVote(itemID, itemType, action, botID string) error {
 	return nil
 }
 
-func (s *SQLiteStore) HasVoted(itemID, botID string) (bool, string, error) {
+func (s *SQLiteStore) HasVoted(itemID, itemType, botID string) (bool, string, error) {
 	query := `
     SELECT action FROM votes
-    WHERE item_id = ? AND bot_id = ? LIMIT 1`
+    WHERE item_id = ? AND item_type = ? AND bot_id = ? LIMIT 1`
 
 	var action string
-	err := s.db.QueryRow(query, itemID, botID).Scan(&action)
+	err := s.db.QueryRow(query, itemID, itemType, botID).Scan(&action)
 	if err == sql.ErrNoRows {
 		return false, "", nil
 	} else if err != nil {
