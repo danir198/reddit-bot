@@ -8,8 +8,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
+	"net/http" // Add this line to import the "net/url" package
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -84,19 +88,40 @@ func (b *Bot) upvotePost(postID string) error {
 
 // Upvote a comment
 func (b *Bot) upvoteComment(commentID string) error {
-	_, err := b.client.Comment.Downvote(b.ctx, commentID)
+	_, err := b.client.Comment.Upvote(b.ctx, commentID)
 	return err
 }
 
 // Upvote a post
 func (b *Bot) downvotePost(postID string) error {
-	_, err := b.client.Post.Upvote(b.ctx, postID)
+	_, err := b.client.Post.Downvote(b.ctx, postID)
 	return err
 }
 
 // Upvote a comment
 func (b *Bot) downvoteComment(commentID string) error {
 	_, err := b.client.Comment.Downvote(b.ctx, commentID)
+	return err
+}
+
+// Follow a user
+func (b *Bot) followUser(username string) error {
+	path := fmt.Sprintf("api/v1/me/friends/%s", username)
+	body := map[string]string{
+		"action": "follow",
+		"name":   username,
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	req, err := b.client.NewRequest(http.MethodPut, path, url.Values{"json": {string(jsonBody)}})
+	if err != nil {
+		return err
+	}
+
+	_, err = b.client.Do(b.ctx, req, nil)
 	return err
 }
 
@@ -234,6 +259,15 @@ func (b Bot) Run(wg *sync.WaitGroup) {
 							log.Printf("Error upvoting comment %s: %v", randomComment.FullID, err)
 							continue
 						}
+						profile := post.Post.Author
+
+						err = b.followUser(profile)
+						if err != nil {
+							log.Printf("BOT#%v - Error following profile %v: %v\n", b.ID, profile, err)
+						} else {
+							log.Printf("BOT#%v - Successfully followed profile %v\n", b.ID, profile)
+						}
+
 					} else if b.action == "downvote" {
 						err = b.downvoteComment(randomComment.FullID)
 						if err != nil {
